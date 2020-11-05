@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExploreCalifornia.Processor", "ExploreCalifornia.Processor\ExploreCalifornia.Processor.csproj", "{B4292C15-D626-4F03-915D-7EE8C61DCD7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExploreCalifornia.Processor.Contracts", "ExploreCalifornia.Processor.Contracts\ExploreCalifornia.Processor.Contracts.csproj", "{7572F1B7-AFB0-4CFC-BACB-704B23E103F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4292C15-D626-4F03-915D-7EE8C61DCD7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4292C15-D626-4F03-915D-7EE8C61DCD7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4292C15-D626-4F03-915D-7EE8C61DCD7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4292C15-D626-4F03-915D-7EE8C61DCD7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7572F1B7-AFB0-4CFC-BACB-704B23E103F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7572F1B7-AFB0-4CFC-BACB-704B23E103F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7572F1B7-AFB0-4CFC-BACB-704B23E103F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7572F1B7-AFB0-4CFC-BACB-704B23E103F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A9103CC0-AC9A-4DBA-96BA-E287DC455DA5}
+	EndGlobalSection
+EndGlobal

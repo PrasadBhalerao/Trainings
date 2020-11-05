@@ -1,0 +1,1018 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "cosmosdb_dbname": {
+      "type": "string",
+      "defaultValue": "hplusproductsdb"
+    },
+    "cosmosdb_collection_name": {
+      "type": "string",
+      "defaultValue": "products"
+    },
+    "storage_queue_name": {
+      "type": "string",
+      "defaultValue": "orders"
+    },
+    "storage_table_name": {
+      "type": "string",
+      "defaultValue": "orderhistory"
+    },
+    "storage_blob_name": {
+      "type": "string",
+      "defaultValue": "images"
+    },
+    "storage_table_partition_name": {
+      "type": "string",
+      "defaultValue": "history"
+    },
+    "connections_azurefile_name": {
+      "defaultValue": "azurefile",
+      "type": "String"
+    },
+    "sites_HplusFunctions31_name": {
+      "defaultValue": "HplusFunctions31",
+      "type": "String"
+    },
+    "sites_HPlusSportsAPI31_name": {
+      "defaultValue": "HPlusSportsAPI31",
+      "type": "String"
+    },
+    "sites_HPlusSportsWeb31_name": {
+      "defaultValue": "HPlusSportsWeb31",
+      "type": "String"
+    },
+    "connections_azurequeues_name": {
+      "defaultValue": "azurequeues",
+      "type": "String"
+    },
+    "workflows_HPlusOrderLogic_name": {
+      "defaultValue": "HPlusOrderLogic",
+      "type": "String"
+    },
+    "serverfarms_HPlusSportsPlan_name": {
+      "defaultValue": "HPlusSportsPlan",
+      "type": "String"
+    },
+    "serverfarms_SouthCentralUSPlan_name": {
+      "defaultValue": "SouthCentralUSPlan",
+      "type": "String"
+    },
+    "storageAccounts_hplussports31_name": {
+      "defaultValue": "hplussports31",
+      "type": "String"
+    },
+    "databaseAccounts_hplussports31_name": {
+      "defaultValue": "hplussports31",
+      "type": "String"
+    }
+  },
+  "variables": {
+    "storageAccounts_hplussports31_id": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]",
+    "databaseAccounts_hplussports31_id": "[resourceId('Microsoft.DocumentDB/databaseAccounts',parameters('databaseAccounts_hplussports31_name'))]",
+    "subscription_id": "[subscription().subscriptionId]"
+
+  },
+    "resources": [
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "apiVersion": "2020-03-01",
+            "name": "[parameters('databaseAccounts_hplussports31_name')]",
+            "location": "South Central US",
+            "tags": {
+                "defaultExperience": "Core (SQL)",
+                "hidden-cosmos-mmspecial": "",
+                "CosmosAccountType": "Non-Production"
+            },
+            "kind": "GlobalDocumentDB",
+            "properties": {
+                "publicNetworkAccess": "Enabled",
+                "enableAutomaticFailover": false,
+                "enableMultipleWriteLocations": false,
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "disableKeyBasedMetadataWriteAccess": false,
+                "databaseAccountOfferType": "Standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session",
+                    "maxIntervalInSeconds": 5,
+                    "maxStalenessPrefix": 100
+                },
+                "locations": [
+                    {
+                        "locationName": "South Central US",
+                        "provisioningState": "Succeeded",
+                        "failoverPriority": 0,
+                        "isZoneRedundant": false
+                    }
+                ],
+                "capabilities": []
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('storageAccounts_hplussports31_name')]",
+            "location": "southcentralus",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "largeFileSharesState": "Disabled",
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                },
+                "accessTier": "Hot"
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[parameters('connections_azurefile_name')]",
+            "dependsOn": [ "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]" ],
+            "location": "southcentralus",
+            "properties": {
+              "displayName": "hplussportsfile",
+              "parameterValues": {
+                "accountName": "[parameters('storageAccounts_hplussports31_name')]",
+                "accessKey": "[listKeys(variables('storageAccounts_hplussports31_id'), '2019-04-01').keys[0].value]"
+              },
+                "customParameterValues": {},
+                "api": {
+                    "id": "[concat('/subscriptions/',variables('subscription_id') ,'/providers/Microsoft.Web/locations/southcentralus/managedApis/', parameters('connections_azurefile_name'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[parameters('connections_azurequeues_name')]",
+            "dependsOn": [ "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]" ],
+            "location": "southcentralus",
+            "properties": {
+              "displayName": "HPlusStorage",
+              "parameterValues": {
+                "storageaccount": "[parameters('storageAccounts_hplussports31_name')]",
+                "sharedkey": "[listKeys(variables('storageAccounts_hplussports31_id'), '2019-04-01').keys[0].value]"
+
+              },
+                "customParameterValues": {},
+                "api": {
+                    "id": "[concat('/subscriptions/',variables('subscription_id') ,'/providers/Microsoft.Web/locations/southcentralus/managedApis/', parameters('connections_azurequeues_name'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[parameters('serverfarms_HPlusSportsPlan_name')]",
+            "location": "South Central US",
+            "sku": {
+                "name": "B2",
+                "tier": "Basic",
+                "size": "B2",
+                "family": "B",
+                "capacity": 1
+            },
+            "kind": "app",
+            "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[parameters('serverfarms_SouthCentralUSPlan_name')]",
+            "location": "South Central US",
+            "sku": {
+                "name": "Y1",
+                "tier": "Dynamic",
+                "size": "Y1",
+                "family": "Y",
+                "capacity": 0
+            },
+            "kind": "functionapp",
+            "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+            "apiVersion": "2020-03-01",
+            "name": "[concat(parameters('databaseAccounts_hplussports31_name'), '/', parameters('cosmosdb_dbname'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_hplussports31_name'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "[parameters('cosmosdb_dbname')]"
+                },
+              "options": {
+                "throughput": 400
+              }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_hplussports31_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                },
+                "deleteRetentionPolicy": {
+                    "enabled": false
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_hplussports31_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_HplusFunctions31_name')]",
+            "location": "South Central US",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_SouthCentralUSPlan_name'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+          ],
+            "kind": "functionapp",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "hplusfunctions31.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "hplusfunctions31.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_SouthCentralUSPlan_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None"
+            },
+          "resources": [
+            {
+              "name": "appsettings",
+              "type": "config",
+              "apiVersion": "2015-08-01",
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HplusFunctions31_name'))]"
+              ],
+              "tags": {
+                "displayName": "FunctionsAppSettings"
+              },
+              "properties": {
+                "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccounts_hplussports31_name'),';AccountKey=',listKeys(variables('storageAccounts_hplussports31_id'), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]",
+                "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccounts_hplussports31_name'),';AccountKey=',listKeys(variables('storageAccounts_hplussports31_id'), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]",
+                "FUNCTIONS_EXTENSION_VERSION": "~3"
+              }
+            }
+          ]
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_HPlusSportsAPI31_name')]",
+            "location": "South Central US",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_HPlusSportsPlan_name'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_hplussports31_name'))]"
+          ],
+          "tags": {
+            "[concat('hidden-related:/subscriptions/',variables('subscription_id') ,'/resourceGroups/HPlusSportsRG/providers/Microsoft.Web/serverfarms/HPlusSportsPlan')]": "empty"
+          },
+            "kind": "app",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "hplussportsapi31.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "hplussportsapi31.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_HPlusSportsPlan_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None"
+            },
+          "resources": [
+            {
+              "name": "appsettings",
+              "type": "config",
+              "apiVersion": "2015-08-01",
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HPlusSportsAPI31_name'))]"
+              ],
+              "tags": {
+                "displayName": "HPlusAPIAppSettings"
+              },
+              "properties": {
+                "AZ_Storage": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccounts_hplussports31_name'),';AccountKey=',listKeys(variables('storageAccounts_hplussports31_id'), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]",
+                "AZ_Queue": "[parameters('storage_queue_name')]",
+                "AZ_Blob": "[parameters('storage_blob_name')]",
+                "AZ_Table": "[parameters('storage_table_name')]",
+                "AZ_Partition": "[parameters('storage_table_partition_name')]",
+                "CosmosDB:DBName": "[parameters('cosmosdb_dbname')]",
+                "CosmosDB:DBCollection": "[parameters('cosmosdb_collection_name')]",
+                "CosmosDB:DBUri": "[reference(variables('databaseAccounts_hplussports31_id'), '2020-03-01').documentEndpoint]",
+                "CosmosDB:DBKey": "[listKeys(variables('databaseAccounts_hplussports31_id'), '2020-03-01').primaryMasterKey]"
+              }
+            }
+          ]
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_HPlusSportsWeb31_name')]",
+            "location": "South Central US",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_HPlusSportsPlan_name'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+          ],
+          "tags": {
+            "[concat('hidden-related:/subscriptions/',variables('subscription_id') ,'/resourceGroups/HPlusSportsRG/providers/Microsoft.Web/serverfarms/HPlusSportsPlan')]": "empty"
+          },
+            "kind": "app",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "hplussportsweb31.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "hplussportsweb31.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_HPlusSportsPlan_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None"
+            },
+          "resources": [
+            {
+              "name": "appsettings",
+              "type": "config",
+              "apiVersion": "2015-08-01",
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HPlusSportsWeb31_name'))]"
+              ],
+              "tags": {
+                "displayName": "HPlusWebAppSettings"
+              },
+              "properties": {
+                "APIHost": "[concat('https://', parameters('sites_HPlusSportsAPI31_name') , '.azurewebsites.net/api/')]"
+              }
+            }
+          ]
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_HplusFunctions31_name'), '/web')]",
+            "location": "South Central US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HplusFunctions31_name'))]"
+            ],
+            "properties": {
+                "numberOfWorkers": -1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "phpVersion": "5.6",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$HplusFunctions31",
+                "scmType": "None",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "cors": {
+                    "allowedOrigins": [
+                        "https://functions.azure.com",
+                        "https://functions-staging.azure.com",
+                        "https://functions-next.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_HPlusSportsAPI31_name'), '/web')]",
+            "location": "South Central US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HPlusSportsAPI31_name'))]"
+            ],
+          "tags": {
+            "[concat('hidden-related:/subscriptions/',variables('subscription_id') ,'/resourceGroups/HPlusSportsRG/providers/Microsoft.Web/serverfarms/HPlusSportsPlan')]": "empty"
+          },
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "phpVersion": "5.6",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$HPlusSportsAPI31",
+                "scmType": "None",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_HPlusSportsWeb31_name'), '/web')]",
+            "location": "South Central US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HPlusSportsWeb31_name'))]"
+            ],
+          "tags": {
+            "[concat('hidden-related:/subscriptions/',variables('subscription_id') ,'/resourceGroups/HPlusSportsRG/providers/Microsoft.Web/serverfarms/HPlusSportsPlan')]": "empty"
+          },
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "phpVersion": "5.6",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$HPlusSportsWeb31",
+                "scmType": "None",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_HplusFunctions31_name'), '/', parameters('sites_HplusFunctions31_name'), '.azurewebsites.net')]",
+            "location": "South Central US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HplusFunctions31_name'))]"
+            ],
+            "properties": {
+                "siteName": "HplusFunctions31",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_HPlusSportsAPI31_name'), '/', parameters('sites_HPlusSportsAPI31_name'), '.azurewebsites.net')]",
+            "location": "South Central US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HPlusSportsAPI31_name'))]"
+            ],
+            "properties": {
+                "siteName": "HPlusSportsAPI31",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_HPlusSportsWeb31_name'), '/', parameters('sites_HPlusSportsWeb31_name'), '.azurewebsites.net')]",
+            "location": "South Central US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HPlusSportsWeb31_name'))]"
+            ],
+            "properties": {
+                "siteName": "HPlusSportsWeb31",
+                "hostNameType": "Verified"
+            }
+        },
+      {
+        "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+        "apiVersion": "2020-03-01",
+        "name": "[concat(parameters('databaseAccounts_hplussports31_name'), '/', parameters('cosmosdb_dbname'), '/', parameters('cosmosdb_collection_name'))]",
+        "dependsOn": [
+          "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('databaseAccounts_hplussports31_name'), parameters('cosmosdb_dbname'))]",
+          "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_hplussports31_name'))]"
+        ],
+        "properties": {
+          "resource": {
+            "id": "[parameters('cosmosdb_collection_name')]",
+            "indexingPolicy": {
+              "indexingMode": "consistent",
+              "automatic": true,
+              "includedPaths": [
+                {
+                  "path": "/*"
+                }
+              ],
+              "excludedPaths": [
+                {
+                  "path": "/\"_etag\"/?"
+                }
+              ]
+            },
+            "partitionKey": {
+              "paths": [
+                "/Category"
+              ],
+              "kind": "Hash"
+            },
+            "uniqueKeyPolicy": {
+              "uniqueKeys": []
+            },
+            "conflictResolutionPolicy": {
+              "mode": "LastWriterWins",
+              "conflictResolutionPath": "/_ts"
+            }
+          },
+          "options": {}
+        }
+      },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_hplussports31_name'), '/default/azure-webjobs-hosts')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_hplussports31_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+            ],
+            "properties": {
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_hplussports31_name'), '/default/azure-webjobs-secrets')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_hplussports31_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+            ],
+            "properties": {
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_hplussports31_name'), '/default/', parameters('storage_blob_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_hplussports31_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+            ],
+            "properties": {
+                "publicAccess": "Blob"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_hplussports31_name'), '/default/hplusfiles')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices', parameters('storageAccounts_hplussports31_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+            ],
+            "properties": {
+                "shareQuota": 1
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_hplussports31_name'), '/default/hplusfunctions31')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices', parameters('storageAccounts_hplussports31_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_hplussports31_name'))]"
+            ],
+            "properties": {
+                "shareQuota": 5120
+            }
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('workflows_HPlusOrderLogic_name')]",
+            "location": "southcentralus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_HplusFunctions31_name'))]",
+                "[resourceId('Microsoft.Web/connections', parameters('connections_azurequeues_name'))]",
+                "[resourceId('Microsoft.Web/connections', parameters('connections_azurefile_name'))]"
+            ],
+            "tags": {
+                "displayName": "LogicApp"
+            },
+            "properties": {
+                "state": "Disabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_there_are_messages_in_a_queue": {
+                            "recurrence": {
+                                "frequency": "Second",
+                                "interval": 30
+                            },
+                            "splitOn": "@triggerBody()?['QueueMessagesList']?['QueueMessage']",
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azurequeues']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/@{encodeURIComponent('orders')}/message_trigger"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Parse_JSON": {
+                            "runAfter": {},
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@triggerBody()?['MessageText']",
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "Items": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "Id": {
+                                                        "type": "string"
+                                                    },
+                                                    "Name": {
+                                                        "type": "string"
+                                                    },
+                                                    "Quantity": {
+                                                        "type": "integer"
+                                                    },
+                                                    "Size": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "Id",
+                                                    "Name",
+                                                    "Quantity"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "Create_CSV_table": {
+                            "runAfter": {
+                                "Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Table",
+                            "inputs": {
+                                "from": "@body('Parse_JSON')?['Items']",
+                                "format": "CSV"
+                            }
+                        },
+                        "Create_file": {
+                            "runAfter": {
+                                "Create_CSV_table": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azurefile']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": "@body('Create_CSV_table')",
+                                "headers": {
+                                    "ReadFileMetadataFromServer": true
+                                },
+                                "path": "/datasets/default/files",
+                                "queries": {
+                                    "folderPath": "/hplusfiles",
+                                    "name": "@{triggerBody()?['MessageId']}.txt",
+                                    "queryParametersSingleEncoded": true
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "OrderFunction": {
+                            "runAfter": {
+                                "Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Function",
+                            "inputs": {
+                                "body": "@body('Parse_JSON')",
+                                "method": "POST",
+                                "function": {
+                                    "id": "[resourceId('Microsoft.Web/sites/functions', parameters('sites_HplusFunctions31_name'), 'OrderFunction')]"
+                                }
+                            }
+                        },
+                        "Delete_message": {
+                            "runAfter": {
+                                "OrderFunction": [
+                                    "Succeeded"
+                                ],
+                                "Create_file": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azurequeues']['connectionId']"
+                                    }
+                                },
+                                "method": "delete",
+                                "path": "/@{encodeURIComponent('orders')}/messages/@{encodeURIComponent(triggerBody()?['MessageId'])}",
+                                "queries": {
+                                    "popreceipt": "@triggerBody()?['PopReceipt']"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                          "azurequeues": {
+                            "id": "[concat('/subscriptions/',variables('subscription_id') ,'/providers/Microsoft.Web/locations/southcentralus/managedApis/azurequeues')]",
+                            "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_azurequeues_name'))]",
+                            "connectionName": "azurequeues"
+                          },
+                          "azurefile": {
+                            "id": "[concat('/subscriptions/',variables('subscription_id') ,'/providers/Microsoft.Web/locations/southcentralus/managedApis/azurefile')]",
+                            "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_azurefile_name'))]",
+                            "connectionName": "azurefile"
+                          }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

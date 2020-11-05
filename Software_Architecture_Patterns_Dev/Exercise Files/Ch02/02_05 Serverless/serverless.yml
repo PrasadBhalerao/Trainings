@@ -1,0 +1,27 @@
+service: ServerlessExample
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+      Resource: "*"
+
+functions:
+  main:
+    handler: handler.main
+    events:
+      - http: POST /
+
+resources:
+  Resources:
+    BookingQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: BookingQueue
+    MainLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        RetentionInDays: 30

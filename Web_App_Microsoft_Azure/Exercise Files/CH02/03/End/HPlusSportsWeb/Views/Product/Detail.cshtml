@@ -1,0 +1,24 @@
+﻿@model HPlusSportsWeb.Models.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+
+    <div class="product-detail">
+        <img class="product-image" src="@Model.Image" alt="@Model.ImageTitle" />
+        <div>
+            <h2 class="product-name">@Html.DisplayFor(model => model.Name)</h2>
+
+            <p class="product-description">@Html.DisplayFor(model => model.Description)</p>
+
+            <div class="product-button">
+                <button class="btn-primary" onclick="addToCart(@Model.ID, '@Model.Name' );">Add to cart</button>
+            </div>
+
+        </div>
+    </div>
+
+    <a class="product-link" asp-action="Index">Back to Products</a>
+
+

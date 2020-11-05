@@ -1,0 +1,17 @@
+﻿@page
+@model TourModel
+@{
+    ViewData["Title"] = "Our Tours";
+}
+
+<header id="contentHeader" class="hasCrumbs">
+    <h1>@Model.Tour.Name</h1>
+</header>
+<article id="mainArticle">
+    <h1>@Model.Tour.Name</h1>
+    <div>
+        <img src="images/@Model.Tour.Image" alt="@Model.Tour.Name" width="195" height="120" />
+        <p>@Model.Tour.Description</p>
+        <a href="/Booking?id=@Model.Tour.Id" title="Book Now!" class="book">book now!</a>
+    </div>
+</article>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="ExploreCalifornia.Processor.Contracts">
+      <HintPath>..\..\ExploreCalifornia.Processor\ExploreCalifornia.Processor.Contracts\bin\Debug\netstandard2.0\ExploreCalifornia.Processor.Contracts.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

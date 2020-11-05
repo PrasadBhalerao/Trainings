@@ -1,0 +1,19 @@
+{
+  "name": "ServerlessExample",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless": "^1.71.1",
+    "serverless-offline": "^6.1.5"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.678.0"
+  }
+}

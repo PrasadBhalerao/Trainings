@@ -1,0 +1,7 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=hplussports31;AccountKey=hXF/WAzPmcT7YlHpeptAuf/fimmo/uLkG70HNRgCCPSxhg+RlFf9cbUQT/t2DeG/wRxaR+nmVmlMPaE+jH47hg==;BlobEndpoint=https://hplussports31.blob.core.windows.net/;TableEndpoint=https://hplussports31.table.core.windows.net/;QueueEndpoint=https://hplussports31.queue.core.windows.net/;FileEndpoint=https://hplussports31.file.core.windows.net/",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+    }
+}

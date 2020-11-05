@@ -1,0 +1,24 @@
+﻿@page
+@model BookingConfirmedModel
+@{
+    ViewData["Title"] = "Booking";
+}
+<header id="contentHeader" class="hasCrumbs">
+    <h1>Booking Confirmed</h1>
+</header>
+<article id="mainArticle">
+    <h1>Thank You!</h1>
+    <div>
+        <p>Thank you @Model.Name.</p>
+        <p>Your booking for <strong>@Model.Tour.Name</strong> has been registered.</p>
+        <p>
+            You have indicated that you
+            @if (!@Model.Transport)
+            {
+                <span>don't</span>
+            }
+            need transport to an airport.
+        </p>
+        <p>An email was sent to @Model.Email with further instructions.</p>
+    </div>
+</article>

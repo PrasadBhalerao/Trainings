@@ -1,0 +1,40 @@
+version: '3.7'
+services:
+  website:
+    build: 
+      context: ./ExploreCalifornia.Website
+      dockerfile: ExploreCalifornia.Website/Dockerfile
+    ports:
+      - "5000:80"
+  toursservice:
+    build: 
+      context: ./ExploreCalifornia.ToursService
+      dockerfile: ExploreCalifornia.ToursService/Dockerfile
+    volumes:
+      - type: bind
+        source: ./ExploreCalifornia.ToursService/ExploreCalifornia.ToursService/AppData
+        target: /data/ToursService
+  bookingsservice:
+    build: 
+      context: ./ExploreCalifornia.BookingsService
+      dockerfile: ExploreCalifornia.BookingsService/Dockerfile
+    volumes:
+      - type: bind
+        source: ./ExploreCalifornia.BookingsService/ExploreCalifornia.BookingsService/AppData
+        target: /data/BookingsService
+  emailservice:
+    build: 
+      context: ./ExploreCalifornia.EmailService
+      dockerfile: ExploreCalifornia.EmailService/Dockerfile
+    volumes:
+      - type: bind
+        source: ./ExploreCalifornia.EmailService/ExploreCalifornia.EmailService/AppData
+        target: /data/EmailService
+  travelagentservice:
+    build: 
+      context: ./ExploreCalifornia.TravelAgentService
+      dockerfile: ExploreCalifornia.TravelAgentService/Dockerfile
+    volumes:
+      - type: bind
+        source: ./ExploreCalifornia.TravelAgentService/ExploreCalifornia.TravelAgentService/AppData
+        target: /data/TravelAgentService
